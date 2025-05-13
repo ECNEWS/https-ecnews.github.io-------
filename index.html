@@ -1,178 +1,590 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="hi">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EC Code Preview - लाइव कोड एडिटर</title>
+  <meta name="description" content="ECNewsApp यूनिक स्टूडियो - कोड एडिट करें, रियल-टाइम प्रीव्यू देखें, और EC AI चैटबॉट के साथ कोड जेनरेट करें।">
+  <meta name="keywords" content="coding studio, code editor, real-time preview, AI chatbot, ECNewsApp">
+  <meta name="author" content="ECNewsApp Team">
+  <title>ECNewsApp यूनिक स्टूडियो</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.17/codemirror.min.css" />
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
+      margin: 0;
       font-family: Arial, sans-serif;
-      background: #f4f4f4;
+      background-color: #1e1e1e;
+      color: #ffffff;
       display: flex;
       flex-direction: column;
-      height: 100vh;
+      align-items: center;
+      min-height: 100vh;
     }
-    .container {
-      display: flex;
-      flex: 1;
-      padding: 10px;
-      gap: 10px;
-    }
-    .editor, .preview {
-      flex: 1;
-      background: white;
-      border-radius: 8px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      padding: 15px;
-      overflow: auto;
-    }
-    h2 {
-      color: #4CAF50;
-      margin-bottom: 10px;
-      font-size: 1.2em;
-    }
-    textarea {
+    header {
+      text-align: center;
+      padding: 20px;
+      background-color: #2d2d2d;
       width: 100%;
-      height: 30%;
-      margin-bottom: 10px;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 2.5em;
+      color: #00ff00;
+    }
+    header p {
+      margin: 10px 0;
+      font-size: 1.2em;
+      color: #cccccc;
+    }
+    .menu-bar {
+      background-color: #333333;
+      width: 100%;
+      padding: 10px 0;
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .menu-bar a, .menu-bar label {
+      color: #ffffff;
+      text-decoration: none;
+      padding: 10px 20px;
+      font-size: 1.1em;
+      transition: background-color 0.3s;
+      cursor: pointer;
+    }
+    .menu-bar a:hover, .menu-bar label:hover {
+      background-color: #555555;
+    }
+    .buttons {
+      margin: 20px 0;
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .buttons a, .download-btn, .save-btn, .load-btn, .paste-btn, .donate-btn {
+      text-decoration: none;
+      padding: 10px 20px;
+      margin: 5px 10px;
+      background-color: #007bff;
+      color: white;
+      border-radius: 5px;
+      font-size: 1.1em;
+      transition: background-color 0.3s;
+      border: none;
+      cursor: pointer;
+    }
+    .buttons a:hover, .download-btn:hover, .save-btn:hover, .load-btn:hover, .paste-btn:hover, .donate-btn:hover {
+      background-color: #0056b3;
+    }
+    .studio-container {
+      display: flex;
+      flex-direction: column;
+      width: 90%;
+      max-width: 1200px;
+      height: 50vh;
+      background-color: #252526;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    }
+    .file-preview {
+      flex: 1;
+      background-color: #ffffff;
+      border-radius: 5px;
+      padding: 15px;
+      box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+      overflow: auto;
+      margin-bottom: 20px;
+    }
+    .file-structure {
+      background-color: #f0f0f0;
       padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      resize: vertical;
+      border-radius: 5px;
+      margin-bottom: 10px;
+    }
+    .file-structure ul {
+      list-style-type: none;
+      padding: 0;
+      margin: 0;
+    }
+    .file-structure li {
+      padding: 5px 0;
+      color: #333;
       font-family: monospace;
     }
-    iframe {
-      width: 100%;
-      height: 100%;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      background: white;
+    .file-structure li::before {
+      content: "📄 ";
     }
-    .controls {
-      margin-top: 10px;
-      display: flex;
-      gap: 10px;
+    .file-structure li.folder::before {
+      content: "📁 ";
     }
-    button, select {
-      padding: 10px;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
+    .preview-content {
+      color: #000000;
       font-size: 1em;
     }
-    button {
-      background: #4CAF50;
+    .preview-content h2 {
+      color: #ff00ff;
+      margin: 0;
+      font-size: 1.5em;
+    }
+    .editor {
+      flex: 1;
+      background-color: #1e1e1e;
+      border-radius: 5px;
+      box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.3);
+    }
+    .CodeMirror {
+      height: 100%;
+      font-size: 0.9em;
+    }
+    .preview img {
+      max-width: 100%;
+      height: auto;
+      margin-top: 10px;
+    }
+    .chatbot-container {
+      width: 90%;
+      max-width: 1200px;
+      margin: 20px 0;
+      background-color: #333333;
+      border-radius: 10px;
+      padding: 15px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    }
+    .chatbot-header {
+      font-size: 1.2em;
+      color: #00ff00;
+      margin-bottom: 10px;
+    }
+    .chatbot-messages {
+      height: 150px;
+      background-color: #1e1e1e;
+      border-radius: 5px;
+      padding: 10px;
+      overflow-y: auto;
+      margin-bottom: 10px;
+    }
+    .chatbot-messages p {
+      margin: 5px 0;
+      padding: 5px;
+      border-radius: 5px;
+    }
+    .chatbot-messages .user-message {
+      background-color: #007bff;
+      color: white;
+      text-align: right;
+    }
+    .chatbot-messages .bot-message {
+      background-color: #555555;
       color: white;
     }
-    button:hover { background: #45a049; }
-    .premium-btn { background: #ff9800; }
-    .premium-btn:hover { background: #e68a00; }
-    select { background: #f0f0f0; }
+    .chatbot-input {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .chatbot-input input {
+      flex: 1;
+      padding: 10px;
+      border-radius: 5px;
+      border: none;
+      margin-right: 10px;
+      font-size: 1em;
+    }
+    .chatbot-input button {
+      padding: 10px 20px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    .chatbot-input button:hover {
+      background-color: #0056b3;
+    }
+    .code-snippet {
+      background-color: #252526;
+      padding: 10px;
+      border-radius: 5px;
+      margin: 5px 0;
+      color: #d4d4d4;
+      font-family: monospace;
+      position: relative;
+    }
+    .server-updates {
+      width: 90%;
+      max-width: 1200px;
+      margin: 20px 0;
+      background-color: #333333;
+      border-radius: 10px;
+      padding: 15px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    }
+    .server-updates h3 {
+      color: #00ff00;
+      margin: 0 0 10px 0;
+    }
+    .server-updates p {
+      margin: 5px 0;
+      color: #cccccc;
+    }
+    footer {
+      text-align: center;
+      padding: 20px;
+      background-color: #2d2d2d;
+      width: 100%;
+      margin-top: auto;
+    }
+    footer p {
+      margin: 0;
+      color: #cccccc;
+    }
+    /* Responsive Design */
     @media (max-width: 768px) {
-      .container { flex-direction: column; }
-      .editor, .preview { height: 50vh; }
+      .studio-container {
+        height: auto;
+        min-height: 50vh;
+      }
+      .file-preview, .editor {
+        flex: none;
+        height: 200px;
+      }
+      .chatbot-messages {
+        height: 100px;
+      }
+      header h1 {
+        font-size: 1.8em;
+      }
+      header p {
+        font-size: 1em;
+      }
+      .menu-bar a, .menu-bar label {
+        padding: 8px 15px;
+        font-size: 0.9em;
+      }
+      .buttons a, .download-btn, .save-btn, .load-btn, .paste-btn, .donate-btn {
+        padding: 8px 15px;
+        font-size: 0.9em;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="editor">
-      <h2>कोड टाइप करें</h2>
-      <textarea id="htmlCode" placeholder="HTML कोड...">
-<h1>ECNEWS ब्लॉग</h1>
-<p>आपका स्वागत है!</p>
-      </textarea>
-      <textarea id="cssCode" placeholder="CSS कोड...">
-body {
-  font-family: Arial, sans-serif;
-  text-align: center;
-  background: #f0f0f0;
-}
-h1 {
-  color: #4CAF50;
-}
-      </textarea>
-      <textarea id="jsCode" placeholder="JavaScript कोड...">
-console.log('EC Code Preview');
-      </textarea>
-      <div class="controls">
-        <select id="themeSelect" onchange="applyTheme()">
-          <option value="default">डिफॉल्ट थीम</option>
-          <option value="ecnews">ECNEWS थीम</option>
-        </select>
-        <button onclick="updatePreview()">प्रीव्यू अपडेट करें</button>
-        <button class="premium-btn" onclick="downloadCode()">कोड डाउनलोड करें (प्रीमियम)</button>
+  <header>
+    <h1>ECNewsApp यूनिक स्टूडियो</h1>
+    <p>यहां आप अपने कोड को रियल-टाइम फाइल प्रीव्यू के साथ संपादित कर सकते हैं।</p>
+  </header>
+
+  <div class="menu-bar">
+    <a href="#" onclick="alert('फीचर: नए फीचर जल्द आ रहे हैं!')">फीचर</a>
+    <a href="#" onclick="alert('टूल: कोड फॉर्मेटर और डिबगर जल्द उपलब्ध होंगे!')">टूल</a>
+    <a href="#" onclick="saveProject()">फाइल: सेव करें</a>
+    <a href="#" onclick="loadProject()">फाइल: लोड करें</a>
+    <a href="#" onclick="alert('फोल्डर: प्रोजेक्ट फोल्डर मैनेजमेंट जल्द उपलब्ध होगा!')">फोल्डर</a>
+    <label for="image-upload">इमेज: अपलोड करें</label>
+    <input type="file" id="image-upload" accept="image/*" style="display: none;" onchange="uploadImage(event)">
+  </div>
+
+  <div class="buttons">
+    <a href="#" onclick="alert('एप इंस्टॉल लिंक जल्द उपलब्ध होगा!')">एप इंस्टॉल बटन</a>
+    <a href="#" onclick="alert('वेबसाइट डाउनलोड लिंक जल्द उपलब्ध होगा!')">वेबसाइट डाउनलोड बटन</a>
+  </div>
+
+  <div class="server-updates" id="server-updates">
+    <h3>सर्वर अपडेट्स</h3>
+    <p>लेटेस्ट अपडेट: ECNewsApp यूनिक स्टूडियो में नए फीचर जोड़े गए!</p>
+  </div>
+
+  <div class="studio-container">
+    <div class="file-preview">
+      <div class="file-structure" id="file-structure">
+        <h3 style="color: #333; margin: 0 0 10px 0;">फाइल स्ट्रक्चर</h3>
+        <ul>
+          <li class="folder">src</li>
+          <li>App.js</li>
+        </ul>
       </div>
+      <div class="preview-content" id="preview-content">
+        <h2>Welcome, ECNews Dev!</h2>
+      </div>
+      <div id="image-preview"></div>
     </div>
-    <div class="preview">
-      <h2>प्रीव्यू</h2>
-      <iframe id="preview"></iframe>
+    <div class="editor">
+      <textarea id="code-editor">
+function ECNewsAppPreview() {
+  return (
+    <div>
+      <h1>Welcome, ECNews Dev!</h1>
+    </div>
+  );
+}
+
+const App = () => {
+  return (
+    <div>
+      <ECNewsAppPreview />
+    </div>
+  );
+};
+      </textarea>
     </div>
   </div>
+
+  <div class="buttons">
+    <button class="download-btn" onclick="downloadCode()">डाउनलोड कोड</button>
+    <button class="donate-btn" onclick="window.open('https://paypal.me/yourusername', '_blank')">हमें समर्थन करें (डोनेट करें)</button>
+  </div>
+
+  <div class="chatbot-container">
+    <div class="chatbot-header">EC AI चैटबॉट - कोड जेनरेट करें और सवाल पूछें</div>
+    <div class="chatbot-messages" id="chatbot-messages">
+      <p class="bot-message">हाय! मैं EC AI चैटबॉट हूं। मुझे बताएं कि आपको कौन सा कोड चाहिए (जैसे "एक कैलकुलेटर का कोड जेनरेट करें") या कोई सवाल पूछें।</p>
+    </div>
+    <div class="chatbot-input">
+      <input type="text" id="chatbot-input" placeholder="अपना रिक्वेस्ट टाइप करें..." onkeypress="if(event.key === 'Enter') sendMessage()">
+      <button onclick="sendMessage()">भेजें</button>
+    </div>
+  </div>
+
+  <footer>
+    <p>© 2025 ECNewsApp यूनिक स्टूडियो | सभी अधिकार सुरक्षित</p>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.17/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.17/mode/javascript/javascript.min.js"></script>
   <script>
-    function updatePreview() {
-      const html = document.getElementById('htmlCode').value;
-      const css = document.getElementById('cssCode').value;
-      const js = document.getElementById('jsCode').value;
-      const iframe = document.getElementById('preview');
-      const doc = iframe.contentDocument;
-      doc.open();
-      doc.write(`
-        <html>
-        <head>
-          <style>${css}</style>
-        </head>
-        <body>
-          ${html}
-          <script>${js}<\/script>
-        </body>
-        </html>
-      `);
-      doc.close();
-    }
+    // Initialize CodeMirror
+    const editor = CodeMirror.fromTextArea(document.getElementById('code-editor'), {
+      mode: 'javascript',
+      theme: 'default',
+      lineNumbers: true,
+      tabSize: 2,
+    });
 
-    function applyTheme() {
-      const theme = document.getElementById('themeSelect').value;
-      const cssInput = document.getElementById('cssCode');
-      if (theme === 'ecnews') {
-        cssInput.value = `
-body {
-  font-family: 'Arial', sans-serif;
-  background: #e0f7fa;
-  color: #333;
-  text-align: center;
-}
-h1 {
-  color: #00796b;
-  font-size: 2em;
-}
-p {
-  font-size: 1.2em;
-}
-        `;
-      } else {
-        cssInput.value = `
-body {
-  font-family: Arial, sans-serif;
-  text-align: center;
-  background: #f0f0f0;
-}
-h1 {
-  color: #4CAF50;
-}
-        `;
+    // Real-time preview and file structure update
+    editor.on('change', () => {
+      const code = editor.getValue();
+      const previewContent = document.getElementById('preview-content');
+      const fileStructure = document.getElementById('file-structure');
+
+      // Update preview
+      try {
+        const h1Match = code.match(/<h1>(.*?)<\/h1>/);
+        if (h1Match) {
+          previewContent.innerHTML = `<h2>${h1Match[1]}</h2>`;
+        } else {
+          previewContent.innerHTML = '<h2>कोड में h1 टैग नहीं मिला</h2>';
+        }
+      } catch (error) {
+        previewContent.innerHTML = '<h2>कोड में त्रुटि</h2>';
       }
-      updatePreview();
+
+      // Update file structure dynamically
+      const lines = code.split('\n').filter(line => line.trim() !== '');
+      const fileCount = Math.min(lines.length, 5);
+      let fileStructureHTML = '<h3 style="color: #333; margin: 0 0 10px 0;">फाइल स्ट्रक्चर</h3><ul>';
+      fileStructureHTML += '<li class="folder">src</li>';
+      fileStructureHTML += '<li>App.js</li>';
+      for (let i = 0; i < fileCount; i++) {
+        fileStructureHTML += `<li>Component${i + 1}.js</li>`;
+      }
+      fileStructureHTML += '</ul>';
+      fileStructure.innerHTML = fileStructureHTML;
+    });
+
+    // Simulate server updates
+    const serverData = [
+      "लेटेस्ट अपडेट: ECNewsApp यूनिक स्टूडियो में नए फीचर जोड़े गए!",
+      "अपडेट: चैटबॉट अब और स्मार्ट है!",
+      "नया फीचर: रियल-टाइम प्रीव्यू में सुधार किया गया।"
+    ];
+    let currentUpdateIndex = 0;
+    function fetchServerUpdates() {
+      const updatesDiv = document.getElementById('server-updates');
+      updatesDiv.innerHTML = `
+        <h3>सर्वर अपडेट्स</h3>
+        <p>${serverData[currentUpdateIndex]}</p>
+      `;
+      currentUpdateIndex = (currentUpdateIndex + 1) % serverData.length;
+    }
+    setInterval(fetchServerUpdates, 5000); // Update every 5 seconds
+    fetchServerUpdates(); // Initial fetch
+
+    // Save project to localStorage
+    function saveProject() {
+      const code = editor.getValue();
+      localStorage.setItem('ecnewsapp_project', code);
+      alert('प्रोजेक्ट सफलतापूर्वक सेव हो गया!');
     }
 
+    // Load project from localStorage
+    function loadProject() {
+      const savedCode = localStorage.getItem('ecnewsapp_project');
+      if (savedCode) {
+        editor.setValue(savedCode);
+        alert('प्रोजेक्ट सफलतापूर्वक लोड हो गया!');
+      } else {
+        alert('कोई सेव किया हुआ प्रोजेक्ट नहीं मिला।');
+      }
+    }
+
+    // Upload image
+    function uploadImage(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const imagePreview = document.getElementById('image-preview');
+          imagePreview.innerHTML = `<img src="${e.target.result}" alt="Uploaded Image">`;
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    // Download code
     function downloadCode() {
-      alert('प्रीमियम फीचर: कृपया सब्सक्रिप्शन खरीदें!');
-      // भविष्य में: कोड को ZIP फाइल में डाउनलोड करने के लिए FileSaver.js या सर्वर-साइड API यूज़ करें
+      const codeContent = editor.getValue();
+      const blob = new Blob([codeContent], { type: 'text/plain' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'ECNewsAppCode.js';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
     }
 
-    // शुरुआती प्रीव्यू लोड करें
-    window.onload = updatePreview;
+    // Chatbot functionality (Simulating Grok 3-like behavior)
+    function sendMessage() {
+      const input = document.getElementById('chatbot-input');
+      const message = input.value.trim();
+      if (!message) return;
+
+      const messages = document.getElementById('chatbot-messages');
+      messages.innerHTML += `<p class="user-message">${message}</p>`;
+      input.value = '';
+
+      // Simulate Grok 3-like response
+      setTimeout(() => {
+        let response = '';
+        let generatedCode = '';
+
+        // Code generation requests
+        if (message.toLowerCase().includes('कैलकुलेटर') || message.toLowerCase().includes('calculator')) {
+          response = 'यहां एक साधारण कैलकुलेटर का कोड है:';
+          generatedCode = `
+function Calculator() {
+  return (
+    <div>
+      <h1>Simple Calculator</h1>
+      <input type="number" id="num1" placeholder="Enter first number" />
+      <input type="number" id="num2" placeholder="Enter second number" />
+      <button onclick="addNumbers()">Add</button>
+      <p>Result: <span id="result">0</span></p>
+    </div>
+  );
+}
+
+function addNumbers() {
+  const num1 = parseFloat(document.getElementById('num1').value);
+  const num2 = parseFloat(document.getElementById('num2').value);
+  document.getElementById('result').innerText = num1 + num2;
+}
+
+const App = () => {
+  return (
+    <div>
+      <Calculator />
+    </div>
+  );
+};
+          `;
+        } else if (message.toLowerCase().includes('टू-डू लिस्ट') || message.toLowerCase().includes('todo list')) {
+          response = 'यहां एक साधारण टू-डू लिस्ट का कोड है:';
+          generatedCode = `
+function TodoList() {
+  return (
+    <div>
+      <h1>Todo List</h1>
+      <input type="text" id="todoInput" placeholder="Add a task..." />
+      <button onclick="addTodo()">Add</button>
+      <ul id="todoList"></ul>
+    </div>
+  );
+}
+
+function addTodo() {
+  const input = document.getElementById('todoInput');
+  const task = input.value.trim();
+  if (task) {
+    const li = document.createElement('li');
+    li.innerText = task;
+    document.getElementById('todoList').appendChild(li);
+    input.value = '';
+  }
+}
+
+const App = () => {
+  return (
+    <div>
+      <TodoList />
+    </div>
+  );
+};
+          `;
+        } else if (message.toLowerCase().includes('लॉगिन फॉर्म') || message.toLowerCase().includes('login form')) {
+          response = 'यहां एक साधारण लॉगिन फॉर्म का कोड है:';
+          generatedCode = `
+function LoginForm() {
+  return (
+    <div>
+      <h1>Login Form</h1>
+      <input type="text" placeholder="Username" />
+      <input type="password" placeholder="Password" />
+      <button onclick="alert('Login button clicked!')">Login</button>
+    </div>
+  );
+}
+
+const App = () => {
+  return (
+    <div>
+      <LoginForm />
+    </div>
+  );
+};
+          `;
+        }
+        // General questions
+        else if (message.toLowerCase().includes('क्या है') || message.toLowerCase().includes('what is')) {
+          response = 'मैं समझ गया। आप जानना चाहते हैं कि "' + message + '"। यह एक साधारण सवाल है। कृपया थोड़ा और डिटेल दें, जैसे "React क्या है?"।';
+          if (message.toLowerCase().includes('react')) {
+            response = 'React एक JavaScript लाइब्रेरी है जो यूज़र इंटरफेस बनाने के लिए इस्तेमाल होती है। यह Component-बेस्ड है और वर्चुअल DOM का उपयोग करती है। क्या आप React का एक उदाहरण कोड चाहते हैं?';
+          }
+        }
+        // Fallback response
+        else {
+          response = 'मुझे समझने में थोड़ी दिक्कत हो रही है। कृपया और स्पष्ट बताएं, जैसे "एक कैलकुलेटर का कोड जेनरेट करें" या "React क्या है?"।';
+        }
+
+        messages.innerHTML += `<p class="bot-message">${response}</p>`;
+        if (generatedCode) {
+          messages.innerHTML += `
+            <div class="code-snippet">
+              <pre>${generatedCode}</pre>
+              <button class="paste-btn" onclick="pasteCode(\`${generatedCode}\`)">Paste to Editor</button>
+            </div>
+          `;
+        }
+        messages.scrollTop = messages.scrollHeight;
+      }, 1000);
+    }
+
+    // Paste code to editor
+    function pasteCode(code) {
+      editor.setValue(code);
+    }
   </script>
 </body>
-</html>
+</html> 
